@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Hasher – Local CSV Hash Tool</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f12;
+      --bg-subtle: #131318;
+      --surface: #1a1a1f;
+      --surface-hover: #25252c;
+      --text: #e8e8ed;
+      --text-muted: #9a9aa8;
+      --accent: #6366f1;
+      --accent-hover: #818cf8;
+      --accent-glow: rgba(99, 102, 241, 0.25);
+      --success: #22c55e;
+      --success-bg: rgba(34, 197, 94, 0.08);
+      --error: #ef4444;
+      --error-bg: rgba(239, 68, 68, 0.08);
+      --border: #2e2e36;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.08), transparent);
+      color: var(--text);
+      min-height: 100vh;
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 520px;
+      width: 100%;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    h1 {
+      font-size: 1.875rem;
+      font-weight: 700;
+      margin: 0 0 0.35rem;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, var(--text) 0%, var(--text-muted) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .instructions {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+      transition: border-color 0.2s;
+    }
+
+    .instructions:hover {
+      border-color: rgba(99, 102, 241, 0.2);
+    }
+
+    .instructions h2 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin: 0 0 0.6rem;
+      color: var(--text);
+    }
+
+    .instructions p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .instructions ul {
+      margin: 0.5rem 0 0;
+      padding-left: 1.25rem;
+    }
+
+    .instructions li {
+      margin: 0.3rem 0;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .instructions code {
+      background: var(--border);
+      padding: 0.2em 0.5em;
+      border-radius: 6px;
+      font-size: 0.88em;
+    }
+
+    .instructions ol.steps {
+      margin: 0;
+      padding-left: 1.35rem;
+    }
+
+    .instructions ol.steps li {
+      margin-bottom: 0.5rem;
+    }
+
+    .example-block {
+      margin-top: 1rem;
+    }
+
+    .example-block pre {
+      margin: 0.4rem 0 0;
+      padding: 0.75rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: 'Poppins', ui-monospace, monospace;
+      font-size: 0.8rem;
+      overflow-x: auto;
+    }
+
+    .instructions .notes {
+      margin-top: 0.75rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      transition: box-shadow 0.2s;
+    }
+
+    .card:focus-within {
+      box-shadow: var(--shadow), 0 0 0 1px var(--accent);
+    }
+
+    .file-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-sm);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 1rem;
+      position: relative;
+      overflow: hidden;
+      outline: none;
+    }
+
+    .file-zone:focus-visible {
+      box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+    }
+
+    .file-zone:hover,
+    .file-zone:focus-within {
+      border-color: var(--accent);
+      background: rgba(99, 102, 241, 0.04);
+      box-shadow: 0 0 0 4px var(--accent-glow);
+    }
+
+    .file-zone.dragover {
+      border-color: var(--accent);
+      background: rgba(99, 102, 241, 0.08);
+      transform: scale(1.01);
+    }
+
+    .file-zone.has-file {
+      border-style: solid;
+      border-color: rgba(34, 197, 94, 0.4);
+      background: var(--success-bg);
+    }
+
+    .file-zone.has-file:hover {
+      border-color: var(--success);
+    }
+
+    .file-zone input {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+      font-size: 0;
+      z-index: 2;
+    }
+
+    .file-zone .icon {
+      font-size: 2.25rem;
+      margin-bottom: 0.5rem;
+      display: block;
+      transition: transform 0.2s;
+    }
+
+    .file-zone:hover .icon {
+      transform: scale(1.1);
+    }
+
+    .file-zone .prompt {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .file-zone.has-file .prompt {
+      color: var(--success);
+      font-weight: 500;
+    }
+
+    .file-info {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+
+    .file-info.has-file {
+      color: var(--text);
+    }
+
+    .file-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 0.7rem 1.35rem;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    button:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+    }
+
+    button:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--accent-hover);
+      box-shadow: 0 4px 12px var(--accent-glow);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary.loading {
+      pointer-events: none;
+    }
+
+    .btn-primary .spinner {
+      width: 1rem;
+      height: 1rem;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .btn-secondary {
+      background: var(--surface-hover);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: var(--border);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .btn-ghost:hover:not(:disabled) {
+      color: var(--text);
+      background: var(--surface-hover);
+    }
+
+    .progress-section {
+      margin-top: 1.25rem;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .progress-section.visible {
+      display: block;
+    }
+
+    .progress-bar {
+      height: 10px;
+      background: var(--border);
+      border-radius: 5px;
+      overflow: hidden;
+      margin: 0.5rem 0 0.35rem;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+      border-radius: 5px;
+      width: 0%;
+      transition: width 0.25s ease-out;
+    }
+
+    .progress-section.done .progress-fill {
+      background: var(--success);
+    }
+
+    .progress-text {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .download-section {
+      margin-top: 1rem;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .download-section.visible {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      padding: 1rem;
+      background: var(--success-bg);
+      border: 1px solid rgba(34, 197, 94, 0.25);
+      border-radius: var(--radius-sm);
+    }
+
+    .download-section .btn-secondary {
+      flex-shrink: 0;
+    }
+
+    .download-status {
+      font-size: 0.9rem;
+      color: var(--success);
+      font-weight: 500;
+    }
+
+    .security-notice {
+      margin-top: 1.5rem;
+      padding: 1rem 1.35rem;
+      background: rgba(34, 197, 94, 0.06);
+      border: 1px solid rgba(34, 197, 94, 0.35);
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      color: var(--success);
+      line-height: 1.5;
+    }
+
+    .security-notice strong {
+      display: block;
+      margin-bottom: 0.35rem;
+      font-size: 0.95rem;
+    }
+
+    .security-notice ul {
+      margin: 0.35rem 0 0;
+      padding-left: 1.2rem;
+    }
+
+    .security-notice li {
+      margin: 0.2rem 0;
+    }
+
+    .error-msg {
+      margin-top: 1rem;
+      padding: 0.9rem 1.25rem;
+      background: var(--error-bg);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      color: var(--error);
+      display: none;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .error-msg.visible {
+      display: block;
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 1.25rem; }
+      .file-zone { padding: 1.5rem 1rem; }
+      .card { padding: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>Email Hasher</h1>
+      <p class="subtitle">Hash email addresses locally with SHA-256</p>
+    </header>
+
+    <section class="instructions">
+      <h2>Step-by-step instructions</h2>
+      <ol class="steps">
+        <li><strong>Prepare your CSV</strong> — First row must be exactly <code>email</code>. One email per line below.</li>
+        <li><strong>Upload</strong> — Click the box or drag & drop your .csv file.</li>
+        <li><strong>Process</strong> — Click the button. Large files may take a minute.</li>
+        <li><strong>Download</strong> — Save the hashed CSV. Each row becomes a 64-character hex hash.</li>
+      </ol>
+      <div class="example-block">
+        <strong>Example format (first 3 lines):</strong>
+        <pre><code>email
+user@example.com
+other@domain.org</code></pre>
+      </div>
+      <p class="notes">UTF-8 encoding. Emails are trimmed and lowercased before hashing. Output is Meta-compatible SHA-256.</p>
+    </section>
+
+    <div class="card">
+      <div class="file-zone" id="file-zone" role="button" tabindex="0" aria-label="Upload CSV file. Click or drag and drop.">
+        <input type="file" id="file-input" accept=".csv,text/csv" aria-describedby="file-prompt">
+        <span class="icon" aria-hidden="true">📁</span>
+        <span class="prompt" id="file-prompt">Click to choose a CSV file or drag and drop here</span>
+        <span class="file-info" id="file-info"></span>
+      </div>
+
+      <div class="file-actions">
+        <button type="button" class="btn-primary" id="process-btn" disabled>
+          <span class="btn-text">Process</span>
+        </button>
+        <button type="button" class="btn-ghost" id="clear-btn" style="display: none;">Choose different file</button>
+      </div>
+
+      <div class="progress-section" id="progress-section" role="status" aria-live="polite">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="progress-text" id="progress-text">Processing 0 / 0</div>
+      </div>
+
+      <div class="download-section" id="download-section">
+        <span class="download-status" id="download-status"></span>
+        <button type="button" class="btn-secondary" id="download-btn" disabled>⬇ Download hashed CSV</button>
+      </div>
+
+      <div class="error-msg" id="error-msg"></div>
+    </div>
+
+    <div class="security-notice">
+      <strong>🔒 100% private — your data never leaves your device</strong>
+      <ul>
+        <li>All hashing runs locally in your browser. No servers, no API calls.</li>
+        <li>Nothing is uploaded, transmitted, or stored. No analytics or tracking.</li>
+        <li>Emails and hashes exist only in memory during processing and are discarded when you leave or refresh.</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    const EMAIL_HEADER = 'email';
+    const CHUNK_SIZE = 5000;
+
+    const fileInput = document.getElementById('file-input');
+    const fileZone = document.getElementById('file-zone');
+    const filePrompt = document.getElementById('file-prompt');
+    const fileInfo = document.getElementById('file-info');
+    const processBtn = document.getElementById('process-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const progressSection = document.getElementById('progress-section');
+    const progressFill = document.getElementById('progress-fill');
+    const progressText = document.getElementById('progress-text');
+    const downloadSection = document.getElementById('download-section');
+    const downloadBtn = document.getElementById('download-btn');
+    const downloadStatus = document.getElementById('download-status');
+    const errorMsg = document.getElementById('error-msg');
+
+    let selectedFile = null;
+    let parsedEmails = null;
+    let hashedData = null;
+
+    function setProcessLoading(loading) {
+      processBtn.classList.toggle('loading', loading);
+      if (loading) {
+        processBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span>';
+      } else {
+        processBtn.innerHTML = '<span class="btn-text">Process</span>';
+      }
+    }
+
+    function setFileZoneState(hasFile, details = '', showClear = false) {
+      fileZone.classList.toggle('has-file', hasFile);
+      fileInfo.classList.toggle('has-file', hasFile);
+      filePrompt.textContent = hasFile ? '✓ File ready' : 'Drop your CSV here or click to browse';
+      fileInfo.textContent = details;
+      clearBtn.style.display = showClear || hasFile ? 'inline-flex' : 'none';
+    }
+
+    function showError(msg) {
+      errorMsg.textContent = msg;
+      errorMsg.classList.add('visible');
+    }
+
+    function hideError() {
+      errorMsg.classList.remove('visible');
+    }
+
+    function hex(buf) {
+      return Array.from(new Uint8Array(buf))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+    }
+
+    async function sha256(str) {
+      const enc = new TextEncoder();
+      const data = enc.encode(str);
+      const hash = await crypto.subtle.digest('SHA-256', data);
+      return hex(hash);
+    }
+
+    function parseCSV(text) {
+      const lines = [];
+      let cur = '';
+      let inQuotes = false;
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (c === '"') {
+          inQuotes = !inQuotes;
+        } else if ((c === '\n' || c === '\r') && !inQuotes) {
+          if (c === '\r' && text[i + 1] === '\n') i++;
+          if (cur.trim()) lines.push(cur.trim());
+          cur = '';
+        } else {
+          cur += c;
+        }
+      }
+      if (cur.trim()) lines.push(cur.trim());
+      return lines;
+    }
+
+    function firstField(line) {
+      const s = line.trim();
+      if (s.startsWith('"')) {
+        let i = 1;
+        let result = '';
+        while (i < s.length) {
+          if (s[i] === '"') {
+            if (s[i + 1] === '"') { result += '"'; i += 2; }
+            else { i++; break; }
+          } else {
+            result += s[i++];
+          }
+        }
+        return result.trim();
+      }
+      return s.split(',')[0].trim();
+    }
+
+    function validateHeader(line) {
+      return firstField(line).toLowerCase() === EMAIL_HEADER;
+    }
+
+    function extractEmails(lines) {
+      if (lines.length < 2) return { valid: false, emails: [], error: 'CSV must have header "email" and at least one data row.' };
+      const first = lines[0];
+      if (!validateHeader(first)) {
+        return { valid: false, emails: [], error: `First row must be the header "${EMAIL_HEADER}" (case-insensitive). Found: "${firstField(first)}"` };
+      }
+      const emails = [];
+      for (let i = 1; i < lines.length; i++) {
+        const email = firstField(lines[i]).trim().toLowerCase();
+        if (email) emails.push(email);
+      }
+      return { valid: true, emails, error: null };
+    }
+
+    const workerCode = `
+      async function sha256(str) {
+        const enc = new TextEncoder();
+        const data = enc.encode(str);
+        const hash = await crypto.subtle.digest('SHA-256', data);
+        return Array.from(new Uint8Array(hash))
+          .map(b => b.toString(16).padStart(2, '0'))
+          .join('');
+      }
+
+      self.onmessage = async (e) => {
+        const { emails, chunkStart } = e.data;
+        const results = [];
+        for (let i = 0; i < emails.length; i++) {
+          const hash = await sha256(emails[i]);
+          results.push(hash);
+        }
+        self.postMessage({ results, chunkStart });
+      };
+    `;
+
+    const workerBlob = new Blob([workerCode], { type: 'application/javascript' });
+    const workerUrl = URL.createObjectURL(workerBlob);
+
+    function processWithWorker(emails, onProgress) {
+      return new Promise((resolve, reject) => {
+        const total = emails.length;
+        const hashes = new Array(total);
+        const numChunks = Math.ceil(total / CHUNK_SIZE);
+        const worker = new Worker(workerUrl);
+
+        worker.onerror = () => {
+          worker.terminate();
+          reject(new Error('Worker failed. Falling back to main thread.'));
+        };
+
+        let chunkIndex = 0;
+
+        function processNext() {
+          if (chunkIndex >= numChunks) {
+            worker.terminate();
+            resolve(hashes);
+            return;
+          }
+
+          const start = chunkIndex * CHUNK_SIZE;
+          const end = Math.min(start + CHUNK_SIZE, total);
+          const chunk = emails.slice(start, end);
+
+          worker.onmessage = (e) => {
+            const { results } = e.data;
+            for (let i = 0; i < results.length; i++) {
+              hashes[start + i] = results[i];
+            }
+            onProgress(end, total);
+            chunkIndex++;
+            processNext();
+          };
+
+          worker.postMessage({ emails: chunk, chunkStart: start });
+        }
+
+        processNext();
+      });
+    }
+
+    async function processInChunksMain(emails, onProgress) {
+      const total = emails.length;
+      const hashes = [];
+      for (let i = 0; i < total; i++) {
+        hashes.push(await sha256(emails[i]));
+        if ((i + 1) % 500 === 0) onProgress(i + 1, total);
+      }
+      onProgress(total, total);
+      return hashes;
+    }
+
+    fileZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      fileZone.classList.add('dragover');
+    });
+
+    fileZone.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      if (!e.relatedTarget || !fileZone.contains(e.relatedTarget)) {
+        fileZone.classList.remove('dragover');
+      }
+    });
+
+    document.body.addEventListener('dragover', (e) => e.preventDefault(), false);
+    document.body.addEventListener('drop', (e) => e.preventDefault(), false);
+
+    fileZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      fileZone.classList.remove('dragover');
+      const f = e.dataTransfer?.files[0];
+      if (!f) return;
+      const name = (f.name || '').toLowerCase();
+      if (name.endsWith('.csv') || f.type === 'text/csv' || f.type === 'text/plain') {
+        handleFileSelect(f);
+      } else {
+        showError('Only CSV files are accepted. Please drop a .csv file.');
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      const f = e.target.files?.[0];
+      if (!f) return;
+      const name = (f.name || '').toLowerCase();
+      if (!name.endsWith('.csv')) {
+        showError('Only CSV files are accepted. Please select a .csv file.');
+        fileInput.value = '';
+        return;
+      }
+      handleFileSelect(f);
+    });
+
+    fileZone.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        fileInput.click();
+      }
+    });
+
+    clearBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      clearFile();
+    });
+
+    function handleFileSelect(file) {
+      const name = (file.name || '').toLowerCase();
+      if (!name.endsWith('.csv')) {
+        showError('Only CSV files are accepted. Please select a .csv file.');
+        return;
+      }
+      hideError();
+      selectedFile = file;
+      parsedEmails = null;
+      hashedData = null;
+      downloadSection.classList.remove('visible');
+      downloadBtn.disabled = true;
+      progressSection.classList.remove('visible');
+      progressSection.classList.remove('done');
+      processBtn.disabled = true;
+      setFileZoneState(false, `Reading ${file.name}…`);
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        let text = e.target.result;
+        if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+        const lines = parseCSV(text);
+        const { valid, emails, error } = extractEmails(lines);
+
+        if (!valid) {
+          showError(error);
+          setFileZoneState(false, `${file.name} · ${(file.size / 1024).toFixed(1)} KB`, true);
+          return;
+        }
+
+        if (emails.length === 0) {
+          showError('No valid email rows found after the header.');
+          setFileZoneState(false, `${file.name} · ${(file.size / 1024).toFixed(1)} KB`, true);
+          return;
+        }
+
+        parsedEmails = emails;
+        const size = (file.size / 1024).toFixed(1);
+        setFileZoneState(true, `${file.name} · ${size} KB · ${emails.length.toLocaleString()} rows`);
+        processBtn.disabled = false;
+      };
+      reader.onerror = () => {
+        showError('Could not read file.');
+        setFileZoneState(false, file.name, true);
+      };
+      reader.readAsText(file, 'UTF-8');
+    }
+
+    function clearFile() {
+      selectedFile = null;
+      parsedEmails = null;
+      hashedData = null;
+      fileInput.value = '';
+      hideError();
+      setFileZoneState(false, '');
+      processBtn.disabled = true;
+      downloadSection.classList.remove('visible');
+      downloadBtn.disabled = true;
+      progressSection.classList.remove('visible');
+      progressSection.classList.remove('done');
+      setProcessLoading(false);
+    }
+
+    processBtn.addEventListener('click', async () => {
+      if (!parsedEmails) return;
+      hideError();
+      processBtn.disabled = true;
+      setProcessLoading(true);
+      progressSection.classList.add('visible');
+      progressSection.classList.remove('done');
+      downloadSection.classList.remove('visible');
+
+      const emails = parsedEmails;
+      try {
+        const updateProgress = (done, total) => {
+            const pct = Math.round((done / total) * 100);
+            progressFill.style.width = pct + '%';
+            progressText.textContent = `Processing ${done.toLocaleString()} / ${total.toLocaleString()}`;
+          };
+
+        let hashes;
+        try {
+          hashes = await processWithWorker(emails, updateProgress);
+        } catch (workerErr) {
+          const updateProgressMain = (done, total) => {
+            const pct = Math.round((done / total) * 100);
+            progressFill.style.width = pct + '%';
+            progressText.textContent = `Processing ${done.toLocaleString()} / ${total.toLocaleString()}`;
+          };
+          hashes = await processInChunksMain(emails, updateProgressMain);
+        }
+
+        const csv = [EMAIL_HEADER, ...hashes].join('\n');
+
+        progressFill.style.width = '100%';
+        progressText.textContent = `Done · ${emails.length.toLocaleString()} rows hashed`;
+        progressSection.classList.add('done');
+
+        hashedData = { csv, count: hashes.length };
+        downloadStatus.textContent = `${hashes.length.toLocaleString()} rows ready`;
+        downloadBtn.disabled = false;
+        downloadSection.classList.add('visible');
+        processBtn.disabled = false;
+        setProcessLoading(false);
+      } catch (err) {
+        showError(err.message || 'An error occurred while processing.');
+        processBtn.disabled = false;
+        progressSection.classList.remove('visible');
+        setProcessLoading(false);
+      }
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      if (!hashedData) return;
+      const blob = new Blob([hashedData.csv], { type: 'text/csv;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'hashed_emails.csv';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+  </script>
+</body>
+</html>
